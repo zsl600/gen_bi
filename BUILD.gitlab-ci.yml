@@ -25,7 +25,7 @@ build-image-job: # do not change the name of this job without making updates to 
     - .generate-gitlab-attestation
   needs: ["build-job"]
   variables:
-    DOCKERFILE_PATH: $WORKING_DIR/$PRODUCT_IMAGE_NAME
+    DOCKERFILE_PATH: $WORKING_DIR
     DOCKERFILE_NAME: "Dockerfile"
     OPTS: "" # Optional flags for Kaniko cmd
     OUTPUT_IMAGE_TAR: "$OUTPUT_IMAGE_ARTEFACT" # Override default output.tar
