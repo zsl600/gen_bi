@@ -28,7 +28,7 @@ variables:
   PRODUCT_IMAGE_NAME: "gen_bi" # product image name for use. eg. "shopfront"
   VERSION: "" # version of application and docker image tag to release to docker registry.
   OUTPUT_BUILD_ARTEFACT: "$WORKING_DIR/app.jar"
-  OUTPUT_IMAGE_ARTEFACT: "" # image tar/zip file
+  OUTPUT_IMAGE_ARTEFACT: "$PRODUCT_IMAGE_NAME.tar" # image tar/zip file
 
   # dast
   WEBAPP_URL: "http://gen_bi:8501" # URL to reach project web application
