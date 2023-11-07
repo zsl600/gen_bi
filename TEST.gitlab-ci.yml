@@ -1,0 +1,31 @@
+.unit-test-docker:
+  image:
+    name: $NEXUSREPO_DOCKER_PROXY_HOSTNAME/alpine:latest
+  environment:
+    name: testing
+    action: prepare 
+  script:
+    - echo "Unit test"
+#   artifacts:
+#     paths: 
+#       - $WORKING_DIR/junit.xml
+#     reports:
+#       junit: $WORKING_DIR/junit.xml
+
+.integration-test-docker:
+  environment:
+    name: testing
+    action: prepare
+  script:
+    - echo "Integration test"
+#   artifacts:
+#     paths: 
+#       - $WORKING_DIR/cucumber-html-reports/junit.xml
+#     reports:
+#       junit: $WORKING_DIR/cucumber-html-reports/junit.xml
+    
+unit-test-job: # do not change the name of this job without making updates to .gitlab-ci.yml
+  extends: .unit-test-docker
+
+integration-test-job: # do not change the name of this job without making updates to .gitlab-ci.yml
+  extends: .integration-test-docker

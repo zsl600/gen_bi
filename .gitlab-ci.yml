@@ -1,0 +1,154 @@
+include:
+  - local: BUILD.gitlab-ci.yml
+  - local: TEST.gitlab-ci.yml
+  - local: DEPLOY.gitlab-ci.yml
+  - project: "innersource/sgts/ship-hats/ship-hats-templates"
+    ref: "v1.0.9"
+    file:
+      - /templates/vars/.gitlab-ci-sonatype-vars.yml
+      - /templates/.gitlab-ci-publish-to-nexus.yml
+      - /templates/.gitlab-ci-docker-push.yml
+      - /templates/.gitlab-ci-docker-delete.yml
+      - /templates/.gitlab-ci-docker-copy.yml
+
+stages:
+  - build
+  - static-test
+  - runtime-test
+  - publish
+  - sign
+  - deploy-to-prod # to PROD
+
+image: $NEXUSREPO_DOCKER_PROXY_HOSTNAME/alpine:latest
+
+variables:
+  # app-specific variables
+  WORKING_DIR: "" # app for eg. relative path to application from project
+  DOCKER_VERSION: 20.10.13 # docker image version, required for template .run-docker-in-docker.
+  PRODUCT_IMAGE_NAME: "gen_bi" # product image name for use. eg. "shopfront"
+  VERSION: "" # version of application and docker image tag to release to docker registry.
+  OUTPUT_BUILD_ARTEFACT: "$WORKING_DIR/app.jar"
+  OUTPUT_IMAGE_ARTEFACT: "" # image tar/zip file
+
+  # dast
+  WEBAPP_URL: "http://gen_bi:8501" # URL to reach project web application
+  WEBAPP_NAME: "" # web application name that can be searched when service is up
+  DAST_WEBSITE: $WEBAPP_URL # target URL to perform dast
+  # dast_api
+  DAST_API_DISABLED: "true"
+  # DAST_API_TARGET_URL: "" # Base URL of API testing target
+  # Specify the API you want to scan by using any of the following
+  # DAST_API_HAR: "" # HTTP Archive (HAR) file. Using HTTP Archive (HAR) as targeting API for DAST Scanning. See https://docs.gitlab.com/ee/user/application_security/dast_api/#dast-api-scanning-with-a-har-file
+  # DAST_API_OPENAPI: "" # OpenAPI specification file or URL. Using OPENAPI as targeting API for DAST Scanning. See https://docs.gitlab.com/ee/user/application_security/dast_api/#configure-dast-api-with-an-openapi-specification
+  # DAST_API_POSTMAN_COLLECTION: "" # Postman Collection file. Using Postman Collection as targeting API for DAST Scanning. See https://docs.gitlab.com/ee/user/application_security/dast_api/#postman-collection
+  # DAST_API_GRAPHQL: "" # Path to GraphQL endpoint. Using GraphQL Schema as targeting API for DAST Scanning. See https://docs.gitlab.com/ee/user/application_security/dast_api/#graphql-schema
+
+  # for sonarqube scan in compliance framework
+  # check out with SHIP-HATS team for account provisioning
+  # see README.md#provide-sensitive-variables for list of variables required to include ship-sonarqube-scan (ship-sonarqube-scan/ship-sonarqube-scan-maven/ship-sonarqube-scan-dotnet/ship-sonarqube-scan-dotnet-framework)
+
+  # for nexus iq scan in compliance framework
+  # check out with SHIP-HATS team for account provisioning
+  # see README.md#provide-sensitive-variables for list of variables required to include ship-nexus-iq-scan
+  SCAN_TARGETS: "$OUTPUT_BUILD_ARTEFACT $OUTPUT_IMAGE_ARTEFACT"
+  NEXUS_IQ_APP_ID: ""
+
+  # for fod sast and fod dast in compliance framework
+  # check out with SHIP-HATS team for account provisioning
+  # see README.md#provide-sensitive-variables for list of variables required to include ship-fortify-sast (ship-fortify-sast-fod-with-report/ship-fortify-sast-msbuild-with-report) and ship-fortify-dast
+  FOD_USERNAME: "" # This variable is required to include ship-fortify-sast (ship-fortify-sast-fod-with-report/ship-fortify-sast-msbuild-with-report) and ship-fortify-dast in compliance framework
+  FOD_RELEASE: ""
+  FOD_UPLOADER_OPTS: ""
+  # PACKAGE_OPTS: "" # This variable is required for Fortify SAST on platform-agnostic programming language
+  # SOLUTION_FILEPATH: "" # This variable is required for Fortify ScanCentral to package .NET source code for FOD SAST processing. Please define this variable if using Fortify SAST on .NET application.
+
+  # for e2e template publish-jar-job to publish artifact to nexus repository
+  MAVEN_SETTINGS_SERVER_ID: ""
+  NEXUSREPO_REPO_ID: ""
+  NEXUSREPO_REPO_GROUP_ID: ""
+  MVN_SETTINGS_FILE: ""
+  ARTEFACT_VERSION: $VERSION
+  ARTEFACT_ID: ""
+  ARTEFACT_PACKAGE: "" # zip for eg.
+  ARTEFACT: "$OUTPUT_BUILD_ARTEFACT"
+
+  # for e2e template push-image-job to push image to a registry where deployment to prod will take from
+  TEST_REGISTRY: "" # docker registry which test job will run against
+  DEPLOY_FROM_REGISTRY: "" # nexus repository to prepare deployment from there
+  DOCKER_AUTH_CONFIG: "" # to include auth details for both for TEST_REGISTRY and DEPLOY_FROM_REGISTRY.
+
+  # for signing of gitlab attestation in the build process. This is part of supply chain security.
+  ATTESTATION_ARTEFACT_NAME: "$PRODUCT_IMAGE_NAME" # This variable is required to set as artifacts:name in build-job, which can overwrite the default name for artifact attestation (Default: artifacts). It replaces ARTIFACT_NAME following this filename format: {ARTIFACT_NAME}-metadata.json.
+  ATTESTATION_FILE: "$ATTESTATION_ARTEFACT_NAME-metadata.json" # This variable is required if you want to sign gitlab attestation in sign-artifact job, with the flexibility of changing the filename (Default: artifacts-metadata.json) based on $ATTESTATION_ARTEFACT_NAME
+
+  # for verification of gitlab attestation that was generated and signed during the build process. This is part of supply chain security.
+  ATTESTATION_PREDICATE_TYPE: "slsaprovenance" # This variable is required if you want to verify the gitlab attestation. The gitlab attestation follows the "slsaprovenance" predicate type.
+  VERIFY_ATTESTATION_OPTS: "--check-claims=false" # This variable is for including extra arguments when verifying the attestation. "--check-claims=false" is required for gitlab attestation.
+
+# Jobs
+build-job: # build. define in BUILD.gitlab-ci.yml file
+  stage: build
+
+build-image-job: # build image. define in BUILD.gitlab-ci.yml file. built image is required to be tagged to "$PRODUCT_IMAGE_NAME:$VERSION"
+  stage: build
+  artifacts:
+    name: $PRODUCT_IMAGE_NAME
+    when: always
+    paths:
+      - $OUTPUT_IMAGE_ARTEFACT
+
+push-image-for-testing-job: # push the image to a registry which subsequent test job will run against.
+  stage: build
+  needs: [build-image-job]
+  extends: .push-docker-image-to-private-registry
+  variables:
+    DOCKER_TARGET_REGISTRY: "$TEST_REGISTRY"
+    DOCKER_TARGET_IMAGE: "$PRODUCT_IMAGE_NAME:$VERSION"
+    TAR_PATH: "$OUTPUT_IMAGE_ARTEFACT"
+  script:
+    - echo "Push image artefact to testing registry."
+
+unit-test-job: # perform a unit testing. define in TEST.gitlab-ci.yml file
+  stage: runtime-test
+
+integration-test-job: # perform an integration testing. define in TEST.gitlab-ci.yml file
+  stage: runtime-test
+
+# maven is used to publish the build artifacts to a hosted maven repository in Nexus Repository
+# check out with SHIP-HATS team for Nexus Repository account provisioning
+# .publish-maven-artefact template is used to perform this publishing job
+# reference: https://sgts.gitlab-dedicated.com/innersource/sgts/ship-hats/ship-hats-templates/-/tree/main/templates
+publish-jar-job:
+  stage: publish
+  extends: .publish-maven-artefact
+
+push-image-job: # push image to nexus repository to prepare deployment from there
+  stage: publish
+  extends:
+    - .copy-docker-image-from-one-remote-registry-to-another
+  variables:
+    SRC_IMAGE: $TEST_REGISTRY/$PRODUCT_IMAGE_NAME:$VERSION
+    DEST_IMAGE: $DEPLOY_FROM_REGISTRY/$PRODUCT_IMAGE_NAME:$VERSION
+    OPTS: "--remove-signatures --authfile $HOME/.docker/config.json --digestfile $CI_PROJECT_DIR/digest"
+  before_script:
+    - mkdir -p $HOME/.docker
+    - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
+  environment:
+    name: production
+    action: prepare
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/digest
+    expire_in: 1 week
+
+deploy-prod-manual-job:
+  stage: deploy-to-prod # deploy to a target env from DEPLOY.gitlab-ci.yml file, please leave out before_script definition for compliance framework rules to apply.
+
+delete-testing-image-job: # delete image for testing from TEST_REGISTRY
+  stage: .post
+  extends: .delete-gitlab-cr-image
+  variables:
+    IMAGE_NAME: $PRODUCT_IMAGE_NAME
+    IMAGE_VERSION: $VERSION
+  when: always
+  allow_failure: true
