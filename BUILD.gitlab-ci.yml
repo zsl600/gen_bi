@@ -27,6 +27,7 @@ build-image-job: # do not change the name of this job without making updates to 
   variables:
     DOCKERFILE_PATH: $WORKING_DIR
     DOCKERFILE_NAME: "Dockerfile"
+    DOCKERFILE_CONTEXT: $WORKING_DIR
     OPTS: "" # Optional flags for Kaniko cmd
     OUTPUT_IMAGE_TAR: "$OUTPUT_IMAGE_ARTEFACT" # Override default output.tar
   before_script:
