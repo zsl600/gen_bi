@@ -23,9 +23,9 @@ image: $NEXUSREPO_DOCKER_PROXY_HOSTNAME/alpine:latest
 
 variables:
   # app-specific variables
-  WORKING_DIR: "" # app for eg. relative path to application from project
+  WORKING_DIR: "gen_bi" # app for eg. relative path to application from project
   DOCKER_VERSION: 20.10.13 # docker image version, required for template .run-docker-in-docker.
-  PRODUCT_IMAGE_NAME: "gen_bi" # product image name for use. eg. "shopfront"
+  PRODUCT_IMAGE_NAME: "generative_business_intelligence" # product image name for use. eg. "shopfront"
   VERSION: "" # version of application and docker image tag to release to docker registry.
   OUTPUT_BUILD_ARTEFACT: "$WORKING_DIR/app.jar"
   OUTPUT_IMAGE_ARTEFACT: "$PRODUCT_IMAGE_NAME.tar" # image tar/zip file
