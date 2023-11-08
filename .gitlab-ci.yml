@@ -97,16 +97,16 @@ build-image-job: # build image. define in BUILD.gitlab-ci.yml file. built image 
     paths:
       - $OUTPUT_IMAGE_ARTEFACT
 
-push-image-for-testing-job: # push the image to a registry which subsequent test job will run against.
-  stage: build
-  needs: [build-image-job]
-  extends: .push-docker-image-to-private-registry
-  variables:
-    DOCKER_TARGET_REGISTRY: "$TEST_REGISTRY"
-    DOCKER_TARGET_IMAGE: "$PRODUCT_IMAGE_NAME:$VERSION"
-    TAR_PATH: "$OUTPUT_IMAGE_ARTEFACT"
-  script:
-    - echo "Push image artefact to testing registry."
+# push-image-for-testing-job: # push the image to a registry which subsequent test job will run against.
+#   stage: build
+#   needs: [build-image-job]
+#   extends: .push-docker-image-to-private-registry
+#   variables:
+#     DOCKER_TARGET_REGISTRY: "$TEST_REGISTRY"
+#     DOCKER_TARGET_IMAGE: "$PRODUCT_IMAGE_NAME:$VERSION"
+#     TAR_PATH: "$OUTPUT_IMAGE_ARTEFACT"
+#   script:
+#     - echo "Push image artefact to testing registry."
 
 unit-test-job: # perform a unit testing. define in TEST.gitlab-ci.yml file
   stage: runtime-test
