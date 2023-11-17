@@ -26,14 +26,14 @@ if __name__ == '__main__':
         try:
             result = nerve_chain.run(row['question'])
             end = time.time()
-            benchmark_items.append([row['question'], result['sql_query'], end - start])
+            benchmark_items.append([row['question'], result['sql_query'], result['output'], end - start])
         except Exception as e:
             traceback.print_exc()
             end = time.time()
             time.sleep(3)
             benchmark_items.append([row['question'], "", end - start])
             pass
-    df = pd.DataFrame(benchmark_items, columns=['NLQ', 'PREDICTED SQL', 'PREDICTION_TIME'])
+    df = pd.DataFrame(benchmark_items, columns=['NLQ', 'PREDICTED SQL', 'PREDICTED ANSWER', 'PREDICTION_TIME'])
     df.to_csv(index=False,quoting=csv.QUOTE_ALL)
     df.to_csv(OUTPUT_FILE, index=False, quoting=csv.QUOTE_ALL)
 

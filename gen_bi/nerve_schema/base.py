@@ -21,14 +21,13 @@ class NerveSchema:
             table_name = row['table_name']
             col_names = row['columns']
             col_types = row['column_types']
-            col_samples = row['column_samples']
             foreign_keys = row.get('foreign_keys', [])
             description = row.get('description', '')
             primary_keys = row.get('primary_keys', [])
             sample_queries = row.get('sample_queries', [])
             #Transpose col_samples from array of sample row to array of sample columns values
-            for col_name, col_type, col_sample in zip(col_names, col_types, list(map(list, zip(*col_samples)))):
-                schema.append([table_name, col_name, col_type, col_sample, description])
+            for col_name, col_type in zip(col_names, col_types):
+                schema.append([table_name, col_name, col_type, description])
             for primary_key in primary_keys:
                 p_keys.append([table_name, primary_key])
             for foreign_key in foreign_keys:
@@ -38,7 +37,7 @@ class NerveSchema:
                 f_keys.append([first_table, second_table, first_column, second_column])
             for sample_query in sample_queries:
                 sample_qas.append([table_name, sample_query["question"], sample_query["answer"]])
-        self.schema_dataframe = pd.DataFrame(schema, columns=['table_name', 'column_name', 'type', 'sample', 'table_description'])
+        self.schema_dataframe = pd.DataFrame(schema, columns=['table_name', 'column_name', 'type', 'table_description'])
         self.primary_key_dataframe = pd.DataFrame(p_keys, columns=['table_name','primary_key'])
         self.foreign_key_dataframe = pd.DataFrame(f_keys, columns=['first_table_name', 'second_table_name', 'first_table_foreign_key', 'second_table_foreign_key'])
         self.sample_query_dataframe = pd.DataFrame(sample_qas, columns=['table_name', 'question', 'answer'])
@@ -46,19 +45,6 @@ class NerveSchema:
 
     def get_table_names(self):
         return list(self.schema_dataframe['table_name'].unique())
-    
-    def get_sample_dataframe(self, table_name):
-        sample_row_header = []
-        sample_row_value = []
-        filtered_schema_df = self.schema_dataframe[self.schema_dataframe['table_name'] == table_name]
-        for index, row in filtered_schema_df.iterrows():
-            sample_row_header.append(row['column_name'])
-            sample_row_value.append(row['sample'])
-
-        #Transpose sample_row_value from array of sample column values to array of sample row
-        sample_row_value = list(map(list, zip(*sample_row_value)))
-        sample_df = pd.DataFrame(sample_row_value, columns=sample_row_header)
-        return sample_df
 
     def get_table_info(self, table_name):
         table_info = ""
@@ -67,9 +53,6 @@ class NerveSchema:
         table_comment = ""
         table_constraints = []
         primary_keys = []
-        sample_row_header = []
-        sample_row_value = []
-        sample_df = None
         sample_queries_and_answers = []
         
         filtered_schema_df = self.schema_dataframe[self.schema_dataframe['table_name'] == table_name]
@@ -78,12 +61,6 @@ class NerveSchema:
             table_name = row['table_name']
             table_comment = row['table_description']
             columns.append(f"{row['column_name']} {row['type']}")
-            sample_row_header.append(row['column_name'])
-            sample_row_value.append(row['sample'])
-
-        #Transpose sample_row_value from array of sample column values to array of sample row
-        sample_row_value = list(map(list, zip(*sample_row_value)))
-        sample_df = pd.DataFrame(sample_row_value, columns=sample_row_header)
         
         
         filtered_primary_df = self.primary_key_dataframe[self.primary_key_dataframe['table_name'] == table_name]

@@ -29,8 +29,8 @@ time.sleep(0.01)
 STARTING_MESSAGE = """
 Hey there! I'm NERVE. Feel free to ask me anything!
 Here are some of the questions you can ask:
-1) What is the largest investment into Singapore in 2022
-2) What are the yearly trends of Singapore's export for the last 5 years?
+1) What are the datasets available?
+2) What is the total imports from China by Singapore in 2021?
 """
 
 class AiProgressHandler(BaseCallbackHandler):
@@ -194,7 +194,7 @@ def main():
             st.chat_input(placeholder="What datasets do you have available?",disabled=True,key='disabled_chat_input')
             on_input_change(user_input, sql_chain, status_container, chat_input_container, clear_container)
             #Force rerun
-            st.experimental_rerun()
+            st.rerun()
 
         
 

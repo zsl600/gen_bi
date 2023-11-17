@@ -24,24 +24,25 @@ import io
 from langchain.callbacks.base import BaseCallbackManager,BaseCallbackHandler
 import streamlit as st
 from datetime import date
-import sqlite3
 from langchain.llms import VertexAI
 import json
 from google.oauth2.service_account import Credentials
 from langchain.llms.base import LLM
+import duckdb
 
 class NerveLLMChain():
     def mock_data_into_database(_self, _nerve_schema: NerveSchema):
         tables: List[str] = _nerve_schema.get_table_names()
-        conn = sqlite3.connect("nerve.db")
+        conn = duckdb.connect(database="nerve.db")
         for table in tables:
-            _nerve_schema.get_sample_dataframe(table).to_sql(table, conn, index=False, if_exists='replace')
+            conn.execute(f"CREATE OR REPLACE TABLE {table} AS SELECT * FROM read_csv_auto('demo_dataset/{table}.csv', HEADER=true);")
+
 
     @st.cache_resource
     def init_database(_self, databricks_token: str, databricks_sql_hostname: str, databricks_sql_http_path: str, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> NerveSQLDatabase:
 
         if mock_data:
-            return NerveSQLDatabase.from_uri("sqlite:///nerve.db", include_tables=tables, custom_table_info=custom_table_info, engine_args={"pool_pre_ping":True})
+            return NerveSQLDatabase.from_uri("duckdb:///nerve.db", include_tables=tables, custom_table_info=custom_table_info)
         else:
             return NerveSQLDatabase.from_uri("databricks://token:{token}@{host}?http_path={http_path}&catalog={catalog}&schema={schema}".format(
                 token=databricks_token,

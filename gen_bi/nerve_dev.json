@@ -1,6 +1,11 @@
 [
     {
-        "query": "",
-        "question": "What are the top 5 food products that Singapore imports from Malaysia in 2022 based on HS4"
+        "question": "What is the trend of exports from Singapore to Malaysia for between 2015 and 2021"
+    },
+    {
+        "question": "What is the total imports of Singapore from USA in SGD in 2019?"
+    },
+    {
+        "question": "What is the exchange rate trend between SGD and USD for the last 5 years?"
     }
 ]

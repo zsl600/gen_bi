@@ -1,177 +1,97 @@
 schema = [
     {
-        "table_name": "vw_genbi_seabury_cargo",
-        "foreign_keys": [],
+        "dataset": "demo",
+        "table_name": "t_demo_un_comtrade",
+        "foreign_keys": [
+            "t_demo_un_comtrade.reporter_iso3_code = t_demo_country.country_iso3_code",
+            "t_demo_un_comtrade.partner_iso3_code = t_demo_country.country_iso3_code"
+        ],
         "primary_keys": [
-            "trade_reported_month",
-            "product_type_hs6_cd",
-            "trade_origin_country_derived_name",
-            "trade_destination_country_derived_name"
+            "reporter_iso3_code",
+            "partner_iso3_code",
+            "trade_flow",
+            "year"
         ],
         "sample_queries": [
             {
-                "question": "What are the top 5 countries that traded with Singapore in 2022",
-                "answer": "SELECT country_name, SUM(import_value) as import_value, SUM(export_value) as export_value, SUM(import_value + export_value) as total_value FROM (SELECT trade_origin_country_derived_name as country_name, product_total_value_amount as import_value, 0 as export_value FROM vw_genbi_seabury_cargo WHERE trade_destination_country_iso_3_abbr = 'SGP' AND LEFT(trade_reported_month,4) = '2022' UNION ALL SELECT trade_destination_country_derived_name as country_name, 0 as import_value, product_total_value_amount as export_value FROM vw_genbi_seabury_cargo WHERE trade_origin_country_iso_3_abbr = 'SGP' AND LEFT(trade_reported_month,4) = '2022') raw GROUP BY country_name ORDER BY total_value DESC LIMIT 5"
+                "question": "What is the total export between Singapore and Malaysia for the last 5 years in SGD?",
+                "answer": "I will first get the results in terms of USD for the last 5 years, then get the currency code of Singapore (SGD), then get the yearly exchange rate between USD and SGD for the last 5 years, then convert the trade value to SGD as the final answer."
+            },
+            {
+                "question": "What is the trade between Singapore and USA for 2021?", 
+                "answer": "SELECT SUM(trade_value_usd) WHERE reporter_iso3_code = 'SGP' AND partner_iso3_code = 'USA' WHERE year = 2021; Once I have the results in USD, I will convert them to SGD based on 2021 value."
             }
         ],
-        "description": "Global Trade (HS6) by Country - Seabury.",
+        "description": "This data can be useful for understanding trade patterns over time, identifying key trading partners, and analyzing the flow and value of goods between the different countries. Always filter by partner_iso3_code and reporter_iso3_code using the required countries' ISO 3166 Alpha-3 Code, IF NOT the country will NOT be FOUND IF acronyms ARE used.",
         "columns": [
-            "trade_reported_month",
-            "product_type_hs6_code",
-            "trade_origin_country_derived_name",
-            "trade_destination_country_derived_name",
-            "trade_origin_country_iso_3_code",
-            "trade_destination_country_iso_3_code",
-            "product_type_hs2_cd",
-            "product_type_hs4_cd",
-            "product_type_hs6_desc",
-            "product_type_hs4_desc",
-            "product_type_hs2_desc",
-            "product_sea_weight",
-            "product_sea_value_amount",
-            "product_air_weight",
-            "product_air_value_amount",
-            "product_surface_weight",
-            "product_surface_value_amount",
-            "product_total_weight",
-            "product_total_value_amount"
+            "reporter_country_name",
+            "reporter_iso3_code",
+            "partner_country_name",
+            "partner_iso3_code",
+            "trade_flow",
+            "year",
+            "trade_value_usd"
         ],
         "column_types": [
-            "DATE",
             "STRING",
             "STRING",
             "STRING",
             "STRING",
             "STRING",
             "STRING",
-            "STRING",
-            "STRING",
-            "STRING",
-            "STRING",
-            "DOUBLE",
-            "DOUBLE",
-            "DOUBLE",
-            "DOUBLE",
-            "DOUBLE",
-            "DOUBLE",
-            "DOUBLE",
             "DOUBLE"
-        ],
-        "column_samples": [
-            [
-                "2018-04-01",
-                "010612",
-                "Japan",
-                "China",
-                "JPN",
-                "CHN",
-                "01",
-                "0106",
-                "LIVE WHALES DOLPHINS PORPOISES MANATEES DUGONGS SEALS SEA LIONS & WALRUSES",
-                "OTHER LIVE ANIMALS",
-                "LIVE ANIMALS",
-                "0.0",
-                "0.0",
-                "638.135",
-                "553233.006",
-                "0.0",
-                "0.0",
-                "638.135",
-                "553233.006"
-            ],
-            [
-                "2018-04-01",
-                "010612",
-                "Russian Federation",
-                "China",
-                "RUS",
-                "CHN",
-                "01",
-                "0106",
-                "LIVE WHALES DOLPHINS PORPOISES MANATEES DUGONGS SEALS SEA LIONS & WALRUSES",
-                "OTHER LIVE ANIMALS",
-                "LIVE ANIMALS",
-                "0.0",
-                "0.0",
-                "2000.0",
-                "440000.0",
-                "0.0",
-                "0.0",
-                "2000.0",
-                "440000.0"
-            ],
-            [
-                "2018-04-01",
-                "010612",
-                "South Korea",
-                "China",
-                "KOR",
-                "CHN",
-                "01",
-                "0106",
-                "LIVE WHALES DOLPHINS PORPOISES MANATEES DUGONGS SEALS SEA LIONS & WALRUSES",
-                "OTHER LIVE ANIMALS",
-                "LIVE ANIMALS",
-                "0.0",
-                "0.0",
-                "250.0",
-                "247500.0",
-                "0.0",
-                "0.0",
-                "250.0",
-                "247500.0"
-            ]
         ]
     },
     {
-        "table_name": "vw_ref_product",
+        "dataset": "demo",
+        "table_name": "t_demo_country",
         "foreign_keys": [],
         "primary_keys": [
-            "product_type_hs6_cd"
+            "country_iso3_code"
         ],
         "sample_queries": [],
-        "description": "Harmonized System (HS) nomenclature, is used worldwide for the uniform classification of goods traded internationally. Each row consists of their unique HS6 Code and description, and their corresponding HS4 and HS2 Codes and their description which is a superset of their HS6 classification.",
+        "description": "Dimension table of countries",
         "columns": [
-            "product_type_hs2_cd",
-            "product_type_hs4_cd",
-            "product_type_hs6_cd",
-            "product_type_hs2_desc",
-            "product_type_hs4_desc",
-            "product_type_hs6_desc"
+            "country_name",
+            "country_iso3_code",
+            "country_iso2_code",
+            "currency_name",
+            "currency_alpha_code"
         ],
         "column_types": [
-            "STRING",
             "STRING",
             "STRING",
             "STRING",
             "STRING",
             "STRING"
+        ]
+    },
+    {
+        "dataset": "demo",
+        "table_name": "t_demo_currency_exchange_rate",
+        "foreign_keys": [
+            "t_demo_currency_exchange_rate.currency = t_demo_country.currency_alpha_code"
         ],
-        "column_samples": [
-            [
-                "01",
-                "0101",
-                "010121",
-                "LIVE ANIMALS",
-                "LIVE HORSES ASSES MULES & HINNIES",
-                "PURE BRED BREEDING HORSES"
-            ],
-            [
-                "01",
-                "0101",
-                "010129",
-                "LIVE ANIMALS",
-                "LIVE HORSES ASSES MULES & HINNIES",
-                "OTHER LIVE HORSES"
-            ],
-            [
-                "01",
-                "0101",
-                "010130",
-                "LIVE ANIMALS",
-                "LIVE HORSES ASSES MULES & HINNIES",
-                "LIVE ASSES"
-            ]
+        "primary_keys": [
+            "currency",
+            "year"
+        ],
+        "sample_queries": [
+            {
+                "question":"How much SGD can I exchange for 100 MYR in 2022?",
+                "answer": "SELECT 100/exchange_rate_to_one_sgd FROM t_demo_currency_exchange_rate WHERE year = 2022 AND currency = 'MYR'"
+            }
+        ],
+        "description": "Average yearly exchange rate between different countries and Singapore in SGD. Use divide against exchange_rate_to_one_sgd to get the correct value.",
+        "columns": [
+            "currency",
+            "year",
+            "exchange_rate_to_one_sgd"
+        ],
+        "column_types": [
+            "STRING",
+            "STRING",
+            "DOUBLE"
         ]
     }
 ]
