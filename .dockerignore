@@ -3,4 +3,5 @@ __pycache__
 .langchain.db
 survey.log
 benchmark.csv
-nerve.db
+*.db
+*.db.wal

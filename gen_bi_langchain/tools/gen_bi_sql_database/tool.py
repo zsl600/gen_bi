@@ -11,16 +11,16 @@ from langchain.callbacks.manager import (
 )
 from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
-from nerve_langchain.utilities.sql_database import NerveSQLDatabase
+from gen_bi_langchain.utilities.sql_database import GenBISQLDatabase
 from langchain.tools.base import BaseTool
-from nerve_langchain.tools.nerve_sql_database.prompt import QUERY_CHECKER, CHART_DECISION
+from gen_bi_langchain.tools.gen_bi_sql_database.prompt import QUERY_CHECKER, CHART_DECISION
 import pandas as pd
 import csv
 
 class BaseSQLDatabaseTool(BaseModel):
     """Base tool for interacting with a SQL database."""
 
-    db: NerveSQLDatabase = Field(exclude=True)
+    db: GenBISQLDatabase = Field(exclude=True)
 
     # Override BaseTool.Config to appease mypy
     # See https://github.com/pydantic/pydantic/issues/4173

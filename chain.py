@@ -1,18 +1,18 @@
 import os
 from sqlalchemy import create_engine
 from langchain.chat_models import AzureChatOpenAI
-from nerve_schema import NerveSchema
-from nerve_langchain.sql_database import NerveSQLDatabase
+from gen_bi_schema import GenBISchema
+from gen_bi_langchain.sql_database import GenBISQLDatabase
 from langchain.sql_database import SQLDatabase
 from typing import Any, Dict, List, Optional
-from nerve_langchain.agents.agent_toolkits import SQLDatabaseToolkit
+from gen_bi_langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_types import AgentType
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.agents.agent import AgentExecutor
 import pandas as pd
 from io import BytesIO
-from nerve_langchain.agents.agent_toolkits.nerve_sql.prompt import (
+from gen_bi_langchain.agents.agent_toolkits.gen_bi_sql.prompt import (
     SQL_FUNCTIONS_SUFFIX,
     SQL_PREFIX,
     SQL_SUFFIX,
@@ -29,20 +29,20 @@ from google.oauth2.service_account import Credentials
 from langchain.llms.base import LLM
 import duckdb
 
-class NerveLLMChain():
+class GenBILLMChain():
     @st.cache_resource
-    def mock_data_into_database(_self, _nerve_schema: NerveSchema):
-        tables: List[str] = _nerve_schema.get_table_names()
-        conn = duckdb.connect(database="nerve.db")
+    def mock_data_into_database(_self, _gen_bi_schema: GenBISchema):
+        tables: List[str] = _gen_bi_schema.get_table_names()
+        conn = duckdb.connect(database="gen_bi.db")
         for table in tables:
             conn.execute(f"CREATE OR REPLACE TABLE {table} AS SELECT * FROM read_csv_auto('demo_dataset/{table}.csv', HEADER=true);")
 
 
     @st.cache_resource
-    def init_database(_self, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> NerveSQLDatabase:
+    def init_database(_self, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> GenBISQLDatabase:
 
         if mock_data:
-            return NerveSQLDatabase.from_uri("duckdb:///nerve.db", include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000)
+            return GenBISQLDatabase.from_uri("duckdb:///gen_bi.db", include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000)
         else:
             pass
             #Implement your own database connection using sql alchemy URI
@@ -88,7 +88,7 @@ class NerveLLMChain():
         openai_endpoint:str = os.environ.get("OPENAI_ENDPOINT", "")
         openai_token:str = os.environ.get("OPENAI_TOKEN","")
 
-        schema:NerveSchema = NerveSchema()
+        schema:GenBISchema = GenBISchema()
         tables:List[str] = schema.get_table_names()
         custom_table_info:Dict[str,str] = {}
         for table in tables:
@@ -97,7 +97,7 @@ class NerveLLMChain():
         if mock_data:
             self.mock_data_into_database(schema)
 
-        db:NerveSQLDatabase = self.init_database(tables, custom_table_info, mock_data=mock_data)
+        db:GenBISQLDatabase = self.init_database(tables, custom_table_info, mock_data=mock_data)
 
         self.llm:LLM = self.init_llm(llm_provider="openai", openai_endpoint=openai_endpoint, openai_token=openai_token)
 

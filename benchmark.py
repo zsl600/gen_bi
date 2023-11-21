@@ -1,9 +1,7 @@
 import pandas as pd
 import csv
-from chain import NerveLLMChain
-from langchain.chat_models import AzureChatOpenAI
+from chain import GenBILLMChain
 import time
-import os
 import traceback
 import time
 
@@ -12,11 +10,11 @@ def load_data(dataset_location):
     return pd.read_json(dataset_location)
 
 if __name__ == '__main__':
-    NERVE_DATASET = "nerve_dev.json"
+    GEN_BI_DATASET = "gen_bi_dev.json"
     OUTPUT_FILE = "benchmark.csv"
-    benchmark_queries = load_data(NERVE_DATASET)
+    benchmark_queries = load_data(GEN_BI_DATASET)
 
-    nerve_chain = NerveLLMChain("", mock_data=True)
+    gen_bi_chain = GenBILLMChain("", mock_data=True)
 
     benchmark_items = []
     for index, row in benchmark_queries.iterrows():
@@ -24,7 +22,7 @@ if __name__ == '__main__':
         print(row['question'])
         start = time.time()
         try:
-            result = nerve_chain.run(row['question'])
+            result = gen_bi_chain.run(row['question'])
             end = time.time()
             benchmark_items.append([row['question'], result['sql_query'], result['output'], end - start])
         except Exception as e:

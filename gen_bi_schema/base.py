@@ -1,8 +1,8 @@
-from nerve_schema.schema import schema as nerve_schema
+from gen_bi_schema.schema import schema as gen_bi_schema
 import pandas as pd
 import sqlparse
 
-class NerveSchema:
+class GenBISchema:
 
     schema_dataframe: pd.DataFrame = None
     primary_key_dataframe: pd.DataFrame = None
@@ -12,7 +12,7 @@ class NerveSchema:
  
     # init method or constructor
     def __init__(self):
-        raw_schema_df = pd.DataFrame.from_dict(nerve_schema)
+        raw_schema_df = pd.DataFrame.from_dict(gen_bi_schema)
         schema = []
         f_keys = []
         p_keys = []

@@ -4,5 +4,5 @@ __pycache__
 *.log
 *.db
 benchmark.csv
-nerve.db
-nerve.db.wal
+*.db
+*.db.wal

@@ -22,7 +22,7 @@ def truncate_word(content: Any, *, length: int, suffix: str = "...") -> str:
     return content[: length - len(suffix)].rsplit(" ", 1)[0] + suffix
 
 
-class NerveSQLDatabase(SQLDatabase):
+class GenBISQLDatabase(SQLDatabase):
 
     def __init__(
         self,
@@ -39,7 +39,7 @@ class NerveSQLDatabase(SQLDatabase):
         max_result_length: int = 1000
     ):
         
-        super(NerveSQLDatabase,self).__init__(
+        super(GenBISQLDatabase,self).__init__(
             engine=engine, 
             schema=schema, 
             metadata=metadata, 

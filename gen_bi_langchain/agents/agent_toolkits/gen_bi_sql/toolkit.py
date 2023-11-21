@@ -6,7 +6,7 @@ from pydantic import Field
 from langchain.agents.agent_toolkits.base import BaseToolkit
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.tools import BaseTool
-from nerve_langchain.tools.nerve_sql_database.tool import (
+from gen_bi_langchain.tools.gen_bi_sql_database.tool import (
     InfoSQLDatabaseTool,
     ListSQLDatabaseTool,
     QuerySQLCheckerTool,

@@ -1,5 +1,5 @@
 import streamlit as st
-from chain import NerveLLMChain
+from chain import GenBILLMChain
 import traceback
 import sqlparse
 from langchain.callbacks.base import BaseCallbackHandler
@@ -10,11 +10,11 @@ import uuid
 from googleapiclient.discovery import build
 
 st.set_page_config(
-    page_title="NERVE Q&A",
+    page_title="Generative Business Intelligence",
 )
 
 STARTING_MESSAGE = """
-Hey there! I'm NERVE. Feel free to ask me anything!
+Hey there! I'm a Generative Business Intelligence bot. Feel free to ask me anything!
 Here are some of the questions you can ask:
 1) What are the datasets available?
 2) What is the total imports from China by Singapore in 2021?
@@ -70,7 +70,7 @@ def check_password():
 
 
 
-def on_input_change(user_input: str, sql_chain: NerveLLMChain, status_container: LayoutsMixin, chat_input_container: LayoutsMixin, clear_container: LayoutsMixin):
+def on_input_change(user_input: str, sql_chain: GenBILLMChain, status_container: LayoutsMixin, chat_input_container: LayoutsMixin, clear_container: LayoutsMixin):
     user_input = user_input.strip()
     if user_input:
         st.session_state.chat_history.append({"type": "normal", "data": user_input, "role": "human"})
@@ -98,15 +98,15 @@ def on_input_change(user_input: str, sql_chain: NerveLLMChain, status_container:
 
 
 
-def reset_history(sql_chain: NerveLLMChain):
+def reset_history(sql_chain: GenBILLMChain):
     del st.session_state.chat_history[:]
     sql_chain.clear_memory()
 
 
 def initialize():
     st.session_state.setdefault('chat_history',[])
-    if "nerve_chain" not in st.session_state:
-        st.session_state.setdefault('nerve_chain', NerveLLMChain(STARTING_MESSAGE, mock_data=True))
+    if "gen_bi_chain" not in st.session_state:
+        st.session_state.setdefault('gen_bi_chain', GenBILLMChain(STARTING_MESSAGE, mock_data=True))
     if "session_id" not in st.session_state:
         st.session_state.setdefault('session_id', str(uuid.uuid4()))
 
@@ -118,9 +118,9 @@ def initialize():
 def main():
 
     if check_password():
-        st.title("Ask NERVE Anything")
+        st.title("Generative Business Intelligence")
         initialize()
-        sql_chain = st.session_state.nerve_chain
+        sql_chain = st.session_state.gen_bi_chain
 
         with st.container():   
             with st.chat_message("assistant"):

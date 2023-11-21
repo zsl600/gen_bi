@@ -11,10 +11,8 @@ To run the server, please execute the following from the root directory:
 
 ```
 pip3 install -r requirements.txt
-streamlit run streamlit_app.py
+streamlit run main.py
 ```
-
-
 
 
 ## Running with Docker
@@ -36,3 +34,9 @@ export OPENAI_ENDPOINT=""
 export OPENAI_ENDPOINT=""
 python benchmark.py
 ```
+
+## TODO
+
+- Support for custom database URI through environment variables
+- Better environment variable support for OPENAI
+- Script to auto-generate schema.py from database connection
