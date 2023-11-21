@@ -42,7 +42,7 @@ class GenBILLMChain():
     def init_database(_self, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> GenBISQLDatabase:
 
         if mock_data:
-            return GenBISQLDatabase.from_uri("duckdb:///gen_bi.db", include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000)
+            return GenBISQLDatabase.from_uri("duckdb:///gen_bi.db", include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000, engine_args={"pool_pre_ping": True})
         else:
             pass
             #Implement your own database connection using sql alchemy URI
