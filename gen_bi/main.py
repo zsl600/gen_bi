@@ -145,7 +145,7 @@ def initialize_logging():
 def initialize():
     st.session_state.setdefault('chat_history',[])
     if "nerve_chain" not in st.session_state:
-        st.session_state.setdefault('nerve_chain', NerveLLMChain(STARTING_MESSAGE))
+        st.session_state.setdefault('nerve_chain', NerveLLMChain(STARTING_MESSAGE, mock_data=True))
     if "nerve_logger" not in st.session_state:
         st.session_state.setdefault('nerve_logger', initialize_logging())
     if "session_id" not in st.session_state:

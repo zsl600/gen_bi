@@ -26,13 +26,13 @@ To run the server on a Docker container, please execute the following from the r
 docker build -t gen_bi .
 
 # starting up a container
-docker run -p 8501:8501 --env DATABRICKS_TOKEN="" --env OPENAI_TOKEN="" --env DATABRICKS_SQL_HOSTNAME="" --env DATABRICKS_SQL_HTTP_PATH="" gen_bi 
+docker run -p 8501:8501 --env OPENAI_TOKEN="" --env OPENAI_ENDPOINT="" gen_bi 
 ```
 
 
 ```bash
 #For pure benchmarking purpose
-export OPENAI_API_ENDPOINT=""
+export OPENAI_ENDPOINT=""
 export OPENAI_ENDPOINT=""
 python benchmark.py
 ```

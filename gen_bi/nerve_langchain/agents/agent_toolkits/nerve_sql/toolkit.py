@@ -14,7 +14,7 @@ from nerve_langchain.tools.nerve_sql_database.tool import (
     ChartDecisionTool
 )
 from langchain.utilities.sql_database import SQLDatabase
-from langchain.tools.python.tool import PythonREPLTool
+from langchain_experimental.tools.python.tool import PythonREPLTool
 
 
 class SQLDatabaseToolkit(BaseToolkit):
@@ -69,7 +69,7 @@ class SQLDatabaseToolkit(BaseToolkit):
             "Use the format uuid-v4 for the file name. "
             "Print the file name using python function print() after generating the chart. "
         )
-        python_repl_tool = PythonREPLTool(description=python_repl_tool_description)
+        python_repl_tool = PythonREPLTool(name="python_chart_generation", description=python_repl_tool_description)
 
         return [
             query_sql_database_tool,

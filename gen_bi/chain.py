@@ -9,7 +9,6 @@ from nerve_langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_types import AgentType
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.agents import create_pandas_dataframe_agent
 from langchain.agents.agent import AgentExecutor
 import pandas as pd
 from io import BytesIO
@@ -24,13 +23,14 @@ import io
 from langchain.callbacks.base import BaseCallbackManager,BaseCallbackHandler
 import streamlit as st
 from datetime import date
-from langchain.llms import VertexAI
+from langchain.llms.vertexai import VertexAI
 import json
 from google.oauth2.service_account import Credentials
 from langchain.llms.base import LLM
 import duckdb
 
 class NerveLLMChain():
+    @st.cache_resource
     def mock_data_into_database(_self, _nerve_schema: NerveSchema):
         tables: List[str] = _nerve_schema.get_table_names()
         conn = duckdb.connect(database="nerve.db")
@@ -39,18 +39,13 @@ class NerveLLMChain():
 
 
     @st.cache_resource
-    def init_database(_self, databricks_token: str, databricks_sql_hostname: str, databricks_sql_http_path: str, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> NerveSQLDatabase:
+    def init_database(_self, tables:List[str], custom_table_info:Dict[str,str], mock_data: bool = False) -> NerveSQLDatabase:
 
         if mock_data:
-            return NerveSQLDatabase.from_uri("duckdb:///nerve.db", include_tables=tables, custom_table_info=custom_table_info)
+            return NerveSQLDatabase.from_uri("duckdb:///nerve.db", include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000)
         else:
-            return NerveSQLDatabase.from_uri("databricks://token:{token}@{host}?http_path={http_path}&catalog={catalog}&schema={schema}".format(
-                token=databricks_token,
-                host=databricks_sql_hostname,
-                http_path=databricks_sql_http_path,
-                catalog="nerve",
-                schema="genbi"
-            ), include_tables=tables, custom_table_info=custom_table_info, max_string_length=100, max_result_length=1000, engine_args={"pool_pre_ping":True})
+            pass
+            #Implement your own database connection using sql alchemy URI
         
     @st.cache_resource
     def init_llm(_self, llm_provider="openai", openai_endpoint="", openai_token="") -> LLM:
@@ -63,6 +58,7 @@ class NerveLLMChain():
                 temperature=0,
                 top_p=1,
                 top_k=1,
+                location='asia-southeast1',
                 max_output_tokens=1024,
                 credentials=creds,
                 project=service_account_key["project_id"],
@@ -70,13 +66,14 @@ class NerveLLMChain():
             )
         else:
             os.environ["OPENAI_API_TYPE"] = "azure"
-            os.environ["OPENAI_API_VERSION"] = "2023-08-01-preview"
+            os.environ["OPENAI_API_VERSION"] = "2023-12-01-preview"
             os.environ["OPENAI_API_BASE"] = openai_endpoint
             os.environ["OPENAI_API_KEY"] = openai_token
 
             return AzureChatOpenAI(
-                temperature=0, 
-                deployment_name="gpt-4-32k",
+                temperature=0,
+                seed=1, 
+                deployment_name="gpt-4",
             )
 
 
@@ -90,9 +87,6 @@ class NerveLLMChain():
         ):
         openai_endpoint:str = os.environ.get("OPENAI_ENDPOINT", "")
         openai_token:str = os.environ.get("OPENAI_TOKEN","")
-        databricks_token:str = os.environ.get("DATABRICKS_TOKEN","")
-        databricks_sql_hostname:str = os.environ.get("DATABRICKS_SQL_HOSTNAME","")
-        databricks_sql_http_path:str = os.environ.get("DATABRICKS_SQL_HTTP_PATH","")
 
         schema:NerveSchema = NerveSchema()
         tables:List[str] = schema.get_table_names()
@@ -103,7 +97,7 @@ class NerveLLMChain():
         if mock_data:
             self.mock_data_into_database(schema)
 
-        db:NerveSQLDatabase = self.init_database(databricks_token, databricks_sql_hostname, databricks_sql_http_path, tables, custom_table_info, mock_data=mock_data)
+        db:NerveSQLDatabase = self.init_database(tables, custom_table_info, mock_data=mock_data)
 
         self.llm:LLM = self.init_llm(llm_provider="openai", openai_endpoint=openai_endpoint, openai_token=openai_token)
 
@@ -154,7 +148,7 @@ class NerveLLMChain():
             #Save this to last sql query result so that in the event we did not requery the table, we reuse the result
             self.last_sql_query_result = last_sql_db_query_step[1]
             result_length = len(pd.read_csv(io.StringIO(last_sql_db_query_step[1])).index)
-        chart_decision = list(filter(lambda step: step[0].tool == "Python_REPL", result["intermediate_steps"]))
+        chart_decision = list(filter(lambda step: step[0].tool == "python_chart_generation", result["intermediate_steps"]))
         if chart_decision:
             last_chart_generation_step = chart_decision.pop()
             try:
