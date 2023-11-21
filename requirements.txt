@@ -6,14 +6,12 @@ pandas==1.5.3
 Jinja2==3.0.0
 matplotlib==3.7.2
 tabulate==0.8.9
-boto3==1.28.26
 sqlalchemy==1.4.49
 langchain==0.0.338
 tiktoken==0.4.0
 sqlparse==0.4.4
 pydantic==1.10.12
 cloudwatch==1.2.1
-extra-streamlit-components==0.1.60
 google-api-python-client==2.98.0
 duckdb==0.9.2
 langchain-experimental==0.0.42

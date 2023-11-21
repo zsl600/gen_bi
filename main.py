@@ -2,29 +2,16 @@ import streamlit as st
 from chain import NerveLLMChain
 import traceback
 import sqlparse
-import json
-import pandas as pd
 from langchain.callbacks.base import BaseCallbackHandler
 from streamlit.elements.layouts import LayoutsMixin
 from typing import Dict, Any, Union
 from langchain.schema.agent import AgentAction,AgentFinish
-import logging
-from cloudwatch import cloudwatch
-from logging import Logger
 import uuid
-import os
-import extra_streamlit_components as stx
-import time
-from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 st.set_page_config(
     page_title="NERVE Q&A",
 )
-
-COOKIE_MANAGER = stx.CookieManager()
-#Hackish way to handle cookie. time.sleep is a must
-time.sleep(0.01)
 
 STARTING_MESSAGE = """
 Hey there! I'm NERVE. Feel free to ask me anything!
@@ -77,15 +64,6 @@ class AiProgressHandler(BaseCallbackHandler):
         """Run on agent end."""
 
 
-def send_survey_result(session_id: str, logger: Logger, last_question: str, sql_query:str = "", result_length: int = 0):
-    logger.info(json.dumps({
-        "session_id": session_id,
-        "last_question": last_question,
-        "sql_query": sql_query,
-        "result_length": result_length,
-        "email": COOKIE_MANAGER.get("email")
-    }))
-
 def check_password():
     return True
 
@@ -113,11 +91,9 @@ def on_input_change(user_input: str, sql_chain: NerveLLMChain, status_container:
 ~~~
                     """
                 st.session_state.chat_history.append({'type': 'normal', 'data': sql_query_string, 'role': 'ai'})
-            send_survey_result(st.session_state.session_id, st.session_state.nerve_logger, user_input, sql_query=result["sql_query"], result_length=result["result_length"])
         except Exception as e:
             traceback.print_exc()
             st.session_state.chat_history.append({'type': 'normal', 'data': "I am unable to get the response based on this question, please fine-tune it before retrying", 'role': 'ai'})
-            send_survey_result(st.session_state.session_id, st.session_state.nerve_logger, user_input)              
         
 
 
@@ -126,28 +102,11 @@ def reset_history(sql_chain: NerveLLMChain):
     del st.session_state.chat_history[:]
     sql_chain.clear_memory()
 
-@st.cache_resource
-def initialize_logging():
-    log_group = os.environ.get('CLOUDWATCH_LOG_GROUP', "")
-    logger = logging.getLogger('nerve_llm')
-    logger.setLevel(logging.INFO)
-    try:
-        cw_handler = cloudwatch.CloudwatchHandler(log_group = log_group)
-        logger.setLevel(logging.INFO)
-        logger.addHandler(cw_handler)
-    except:
-        #In the event of exceptions, just save the logs to file
-        file_handler = logging.FileHandler('survey.log')
-        file_handler.setLevel(logging.INFO)
-        logger.addHandler(file_handler)
-    return logger
 
 def initialize():
     st.session_state.setdefault('chat_history',[])
     if "nerve_chain" not in st.session_state:
         st.session_state.setdefault('nerve_chain', NerveLLMChain(STARTING_MESSAGE, mock_data=True))
-    if "nerve_logger" not in st.session_state:
-        st.session_state.setdefault('nerve_logger', initialize_logging())
     if "session_id" not in st.session_state:
         st.session_state.setdefault('session_id', str(uuid.uuid4()))
 
@@ -162,7 +121,6 @@ def main():
         st.title("Ask NERVE Anything")
         initialize()
         sql_chain = st.session_state.nerve_chain
-        logger = st.session_state.nerve_logger
 
         with st.container():   
             with st.chat_message("assistant"):
