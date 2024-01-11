@@ -2,6 +2,7 @@ schema = [
     {
         "dataset": "demo",
         "table_name": "t_demo_un_comtrade",
+        "table_formal_name": "UN Comtrade Goods Trade",
         "foreign_keys": [
             "t_demo_un_comtrade.reporter_iso3_code = t_demo_country.country_iso3_code",
             "t_demo_un_comtrade.partner_iso3_code = t_demo_country.country_iso3_code"
@@ -18,7 +19,7 @@ schema = [
                 "answer": "I will first get the results in terms of USD for the last 5 years, then get the currency code of Singapore (SGD), then get the yearly exchange rate between USD and SGD for the last 5 years, then convert the trade value to SGD as the final answer."
             },
             {
-                "question": "What is the trade between Singapore and USA for 2021?", 
+                "question": "What is the trade between Singapore and USA for 2021?",
                 "answer": "SELECT SUM(trade_value_usd) WHERE reporter_iso3_code = 'SGP' AND partner_iso3_code = 'USA' WHERE year = 2021; Once I have the results in USD, I will convert them to SGD based on 2021 value."
             }
         ],
@@ -40,11 +41,13 @@ schema = [
             "STRING",
             "STRING",
             "DOUBLE"
-        ]
+        ],
+        "last_updated_date": ""
     },
     {
         "dataset": "demo",
         "table_name": "t_demo_country",
+        "table_formal_name": "Countries",
         "foreign_keys": [],
         "primary_keys": [
             "country_iso3_code"
@@ -64,10 +67,12 @@ schema = [
             "STRING",
             "STRING",
             "STRING"
-        ]
+        ],
+        "last_updated_date": ""
     },
     {
         "dataset": "demo",
+        "table_formal_name": "Exchange Rate",
         "table_name": "t_demo_currency_exchange_rate",
         "foreign_keys": [
             "t_demo_currency_exchange_rate.currency = t_demo_country.currency_alpha_code"
@@ -78,11 +83,11 @@ schema = [
         ],
         "sample_queries": [
             {
-                "question":"How much SGD can I exchange for 100 MYR in 2022?",
+                "question": "How much SGD can I exchange for 100 MYR in 2022?",
                 "answer": "SELECT 100/exchange_rate_to_one_sgd FROM t_demo_currency_exchange_rate WHERE year = 2022 AND currency = 'MYR'"
             }
         ],
-        "description": "Average yearly exchange rate between different countries and Singapore in SGD. Use divide against exchange_rate_to_one_sgd to get the correct value.",
+        "description": "Average yearly exchange rate between different countries and Singapore in SGD",
         "columns": [
             "currency",
             "year",
@@ -92,6 +97,7 @@ schema = [
             "STRING",
             "STRING",
             "DOUBLE"
-        ]
+        ],
+        "last_updated_date": ""
     }
 ]
