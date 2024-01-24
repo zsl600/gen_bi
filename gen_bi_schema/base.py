@@ -17,8 +17,11 @@ class GenBISchema:
         f_keys = []
         p_keys = []
         sample_qas = []
+        table_info = []
         for index, row in raw_schema_df.iterrows():
             table_name = row['table_name']
+            table_formal_name = row['table_formal_name']
+            last_updated_date = row['last_updated_date']
             col_names = row['columns']
             col_types = row['column_types']
             foreign_keys = row.get('foreign_keys', [])
@@ -37,14 +40,34 @@ class GenBISchema:
                 f_keys.append([first_table, second_table, first_column, second_column])
             for sample_query in sample_queries:
                 sample_qas.append([table_name, sample_query["question"], sample_query["answer"]])
+            table_info.append([table_name, table_formal_name, description, last_updated_date])
         self.schema_dataframe = pd.DataFrame(schema, columns=['table_name', 'column_name', 'type', 'table_description'])
         self.primary_key_dataframe = pd.DataFrame(p_keys, columns=['table_name','primary_key'])
         self.foreign_key_dataframe = pd.DataFrame(f_keys, columns=['first_table_name', 'second_table_name', 'first_table_foreign_key', 'second_table_foreign_key'])
         self.sample_query_dataframe = pd.DataFrame(sample_qas, columns=['table_name', 'question', 'answer'])
+        self.table_info_dataframe = pd.DataFrame(table_info,columns=['table_name', 'table_formal_name', 'table_description', 'last_updated_date'])
             
 
     def get_table_names(self):
         return list(self.schema_dataframe['table_name'].unique())
+    
+    def get_table_formal_name(self, table_name):
+        table_formal_name = ""
+        filtered_table_info_df = self.table_info_dataframe.loc[(self.table_info_dataframe['table_name'] == table_name)]
+        for index, row in filtered_table_info_df.iterrows():
+            table_formal_name = row['table_formal_name']
+            break
+        
+        return table_formal_name
+    
+    def get_table_last_updated_date(self, table_name):
+        last_updated_date = ""
+        filtered_table_info_df = self.table_info_dataframe.loc[(self.table_info_dataframe['table_name'] == table_name)]
+        for index, row in filtered_table_info_df.iterrows():
+            last_updated_date = row['last_updated_date']
+            break
+        
+        return last_updated_date
 
     def get_table_info(self, table_name):
         table_info = ""

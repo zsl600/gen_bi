@@ -84,6 +84,14 @@ def on_input_change(user_input: str, sql_chain: GenBILLMChain, status_container:
             if result["image"]:
                 st.session_state.chat_history.append({"type": "image", "data": result["image"], "role": "ai"})
 
+            if result["table_sources"]:
+                table_sources_string = f"""The following tables were used: 
+
+{result['table_sources']}
+"""
+                st.session_state.chat_history.append({"type": "normal", "data": table_sources_string, 'role': 'ai'})
+
+
             if result["sql_query"]:
                 sql_query_string = f"""The following SQL query is used: 
 ~~~py

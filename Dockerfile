@@ -1,8 +1,10 @@
 FROM python:3.11-bullseye
-COPY . /app
 WORKDIR /app
-
+COPY requirements.txt /app/
 RUN pip3 install --retries 1 --timeout 5 --no-cache-dir -r requirements.txt
+
+COPY . /app
+
 
 EXPOSE 5000
 

@@ -30,7 +30,7 @@ docker run -p 8501:8501 --env OPENAI_TOKEN="" --env OPENAI_ENDPOINT="" gen_bi
 
 ```bash
 #For pure benchmarking purpose
-export OPENAI_ENDPOINT=""
+export OPENAI_TOKEN=""
 export OPENAI_ENDPOINT=""
 python benchmark.py
 ```

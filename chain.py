@@ -91,8 +91,15 @@ class GenBILLMChain():
         schema:GenBISchema = GenBISchema()
         tables:List[str] = schema.get_table_names()
         custom_table_info:Dict[str,str] = {}
+        self.table_info:Dict[str,Dict] = {}
         for table in tables:
             custom_table_info[table] = schema.get_table_info(table_name=table)
+            table_formal_name = schema.get_table_formal_name(table_name=table)
+            last_updated_date = schema.get_table_last_updated_date(table_name=table)
+            self.table_info[table] = {
+                "formal_name": table_formal_name,
+                "last_updated_date": last_updated_date
+            }
         
         if mock_data:
             self.mock_data_into_database(schema)
@@ -141,13 +148,32 @@ class GenBILLMChain():
         file_buf = None
         sql_query = ""
         result_length = 0
+        table_sources_markdown = ""
         sql_db_queries = list(filter(lambda step: step[0].tool == "sql_db_query", result["intermediate_steps"])) 
+        sql_db_schema_steps = list(filter(lambda step: step[0].tool == "sql_db_schema", result["intermediate_steps"]))
         if sql_db_queries:
             last_sql_db_query_step = sql_db_queries.pop()
             sql_query = last_sql_db_query_step[0].tool_input
             #Save this to last sql query result so that in the event we did not requery the table, we reuse the result
             self.last_sql_query_result = last_sql_db_query_step[1]
             result_length = len(pd.read_csv(io.StringIO(last_sql_db_query_step[1])).index)
+
+            if sql_db_schema_steps:
+                tables_set = set()
+                #TODO: Change this to a proper flatmap function
+                tables_before_flatmap = list(map(lambda step: step[0].tool_input.split(","), sql_db_schema_steps))
+                for tables in tables_before_flatmap:
+                    for table in tables:
+                        tables_set.add(table.strip())
+                table_lists = list(tables_set)
+                table_sources = []
+                for table_name in table_lists:
+                    table_sources.append({
+                        "formal_name": self.table_info[table_name]["formal_name"],
+                        "last_updated_date": self.table_info[table_name]["last_updated_date"] or "Unknown"
+                    })
+                if table_sources:
+                    table_sources_markdown = pd.DataFrame(table_sources).to_markdown(index=False)
         chart_decision = list(filter(lambda step: step[0].tool == "python_chart_generation", result["intermediate_steps"]))
         if chart_decision:
             last_chart_generation_step = chart_decision.pop()
@@ -168,5 +194,6 @@ class GenBILLMChain():
             "output": output,
             "sql_query": sql_query,
             "image": file_buf,
-            "result_length": result_length
+            "result_length": result_length,
+            "table_sources": table_sources_markdown
         }
