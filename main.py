@@ -10,14 +10,16 @@ import uuid
 from googleapiclient.discovery import build
 
 st.set_page_config(
-    page_title="Generative Business Intelligence",
+    page_title="Ask NERVE Anything",
 )
 
 STARTING_MESSAGE = """
-Hey there! I'm a Generative Business Intelligence bot. Feel free to ask me anything!
+Hey there! I'm ANA, Ask NERVE Anything. Feel free to ask me anything!
 Here are some of the questions you can ask:
 1) What are the datasets available?
 2) What is the total imports from China by Singapore in 2021?
+3) Describe the trends for Singapore's export for the last 5 years
+4) Generate a chart for Singapore's export for the last 5 years
 """
 
 class AiProgressHandler(BaseCallbackHandler):
@@ -126,7 +128,7 @@ def initialize():
 def main():
 
     if check_password():
-        st.title("Generative Business Intelligence")
+        st.title("Ask NERVE Anything")
         initialize()
         sql_chain = st.session_state.gen_bi_chain
 

@@ -42,7 +42,7 @@ schema = [
             "STRING",
             "DOUBLE"
         ],
-        "last_updated_date": ""
+        "last_updated_date": "2023"
     },
     {
         "dataset": "demo",
@@ -68,7 +68,7 @@ schema = [
             "STRING",
             "STRING"
         ],
-        "last_updated_date": ""
+        "last_updated_date": "2023"
     },
     {
         "dataset": "demo",
@@ -98,6 +98,6 @@ schema = [
             "STRING",
             "DOUBLE"
         ],
-        "last_updated_date": ""
+        "last_updated_date": "2023"
     }
 ]

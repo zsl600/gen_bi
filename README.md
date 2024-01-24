@@ -1,4 +1,4 @@
-# Generative Business Intelligence
+# Ask NERVE Anything
 
 ## Overview
 POC to demonstrate integration of LLM to ask questions on database without touching any datasets by ChatGPT
