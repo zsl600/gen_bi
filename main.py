@@ -10,7 +10,7 @@ import uuid
 from googleapiclient.discovery import build
 
 st.set_page_config(
-    page_title="Ask NERVE Anything",
+    page_title="Ask NERVE Anything (Public Demo)",
 )
 
 STARTING_MESSAGE = """
@@ -128,7 +128,7 @@ def initialize():
 def main():
 
     if check_password():
-        st.title("Ask NERVE Anything")
+        st.title("Ask NERVE Anything (Public Demo)")
         initialize()
         sql_chain = st.session_state.gen_bi_chain
 
